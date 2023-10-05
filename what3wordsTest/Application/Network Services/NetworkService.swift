@@ -8,10 +8,15 @@
 import Foundation
 import Alamofire
 
+enum NetworkError: Error {
+    case invalidRequest
+    case invalidResponse
+    case fromAFError(AFError)
+    case noConnection
+}
+
+
 class NetworkService {
-    static let shared = NetworkService()
-        
-    private init() {}
     
     func request<T: Decodable>(
         urlPath: String,
@@ -21,27 +26,32 @@ class NetworkService {
         headers: HTTPHeaders? = nil,
         completion: @escaping (Result<T, Error>) -> Void
     ) {
-        let fullUrl = baseUrl + urlPath
         
-        var requestHeaders: HTTPHeaders = [
-            "Authorization": "Bearer \(apiKey)"
-        ]
-        
-        // Merge additional headers if provided
-        if let headers = headers {
-            requestHeaders.merge(headers) { (_, new) in new }
+        guard NetworkReachabilityManager()!.isReachable else {
+            completion(.failure(NetworkError.noConnection))
+            return
         }
         
-        AF.request(fullUrl, method: method, parameters: parameters, encoding: encoding, headers: requestHeaders)
+        var requestHeaders: HTTPHeaders = [
+            "Authorization": "Bearer \(Endpoint.apiKey)"
+        ]
+        
+        if let headers = headers {
+            headers.forEach { header in
+                requestHeaders.add(header)
+            }
+        }
+        
+        AF.request(urlPath, method: method, parameters: parameters, encoding: encoding, headers: requestHeaders)
             .validate()
             .responseJSON { response in
                 switch response.result {
                 case .success(let data):
-                    do {
-                        let decodedData = try JSONDecoder().decode(T.self, from: data)
-                        completion(.success(decodedData))
-                    } catch {
-                        completion(.failure(error))
+                    if let jsonData = try? JSONSerialization.data(withJSONObject: data),
+                       let decodedObject = try? JSONDecoder().decode(T.self, from: jsonData) {
+                        completion(.success(decodedObject))
+                    } else {
+                        completion(.failure(NetworkError.invalidResponse))
                     }
                 case .failure(let error):
                     completion(.failure(error))

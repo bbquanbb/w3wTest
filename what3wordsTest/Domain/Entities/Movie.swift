@@ -23,7 +23,9 @@ struct Movie: Codable {
     let video: Bool?
     let voteAverage: Double?
     let voteCount: Int?
-    
+    var thumb: String {
+        return "https://www.themoviedb.org/t/p/w440_and_h660_face" + (backdropPath ?? "")
+    }
     enum CodingKeys: String, CodingKey {
         case adult
         case backdropPath = "backdrop_path"

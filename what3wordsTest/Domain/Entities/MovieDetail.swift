@@ -10,7 +10,7 @@ import Foundation
 struct MovieDetail: Codable {
     let adult: Bool?
     let backdropPath: String?
-    let belongsToCollection: String?
+    let belongsToCollection: BelongsToCollection?
     let budget: Int?
     let genres: [Genre]?
     let homepage: String?
@@ -34,6 +34,15 @@ struct MovieDetail: Codable {
     let voteAverage: Double?
     let voteCount: Int?
     
+    func generateImgPath(urlPath: String) -> String{
+        return "https://image.tmdb.org/t/p/w440_and_h660_face/" + urlPath
+    }
+    struct BelongsToCollection: Codable {
+         let id: Int?
+         let name: String?
+         let poster_path: String?
+         let backdrop_path: String?
+    }
     struct Genre: Codable {
         let id: Int?
         let name: String?

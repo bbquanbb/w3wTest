@@ -8,7 +8,9 @@
 import Foundation
 
 protocol MovieUseCase {
-    func fetchTrendingMovies(completion: @escaping (Result<TrendingMovie, Error>) -> Void)
-    func searchMovies(query: String, completion: @escaping (Result<TrendingMovie, Error>) -> Void)
+    func fetchTrendingMovies(page: Int, completion: @escaping (Result<TrendingMovie, Error>) -> Void)
+    func searchMovies(query: String, completion: @escaping (Result<[Movie], Error>) -> Void)
     func getMovieDetails(movieID: Int, completion: @escaping (Result<MovieDetail, Error>) -> Void)
+    func loadOfflineMovies() -> [Movie]?
+
 }
